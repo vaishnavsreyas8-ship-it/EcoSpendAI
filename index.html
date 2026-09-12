@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>EcoSpendAI</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div class="container">
+
+    <h1>🌱 EcoSpendAI</h1>
+    <p>AI Sustainable Expense Tracker</p>
+
+    <h2>Add Expense</h2>
+    <form action="/add" method="POST">
+        <input type="text" name="item" placeholder="Item" required>
+        <input type="number" name="amount" placeholder="Amount ₹" required>
+
+        <select name="category">
+            <option>Food</option>
+            <option>Travel</option>
+            <option>Shopping</option>
+            <option>Bills</option>
+        </select>
+
+        <button type="submit">Add Expense</button>
+    </form>
+
+    <hr>
+
+    <h2>Dashboard</h2>
+    <h3>Total Spent: ₹{{ total }}</h3>
+    <h3>CO₂ Score: {{ carbon|round(2) }} kg</h3>
+
+    {% if carbon < 5 %}
+        <p style="color:green;">🌍 Excellent! Low impact.</p>
+    {% elif carbon < 15 %}
+        <p style="color:orange;">⚠ Moderate impact.</p>
+    {% else %}
+        <p style="color:red;">🚨 High impact!</p>
+    {% endif %}
+
+    <div class="tip-box">
+        <h3>🤖 AI Eco Tip</h3>
+        <p>{{ tip }}</p>
+    </div>
+
+    <a href="/export"><button>📄 Export PDF</button></a>
+
+    <hr>
+
+    <h2>Recent Expenses</h2>
+    <table>
+        <tr>
+            <th>Item</th>
+            <th>₹</th>
+            <th>Category</th>
+            <th>CO₂</th>
+            <th>Action</th>
+        </tr>
+
+        {% for e in expenses %}
+        <tr>
+            <td>{{ e[1] }}</td>
+            <td>{{ e[2] }}</td>
+            <td>{{ e[3] }}</td>
+            <td>{{ e[4]|round(2) }}</td>
+            <td><a href="/delete/{{ e[0] }}">🗑 Delete</a></td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <hr>
+
+    <h2>CO₂ Emissions Chart</h2>
+    <canvas id="co2Chart"></canvas>
+
+    <hr>
+
+    <h2>Expense Categories</h2>
+    <canvas id="pieChart"></canvas>
+
+</div>
+
+<script>
+const labels = JSON.parse('{{ labels|tojson|safe }}');
+const co2 = JSON.parse('{{ co2_values|tojson|safe }}');
+const catLabels = JSON.parse('{{ category_labels|tojson|safe }}');
+const catValues = JSON.parse('{{ category_values|tojson|safe }}');
+
+new Chart(document.getElementById("co2Chart"), {
+    type: "bar",
+    data: {
+        labels: labels,
+        datasets: [{
+            label: "CO₂ (kg)",
+            data: co2,
+            backgroundColor: "#2e7d32"
+        }]
+    }
+});
+
+new Chart(document.getElementById("pieChart"), {
+    type: "pie",
+    data: {
+        labels: catLabels,
+        datasets: [{
+            data: catValues,
+            backgroundColor: ["#4CAF50","#2196F3","#FF9800","#9C27B0"]
+        }]
+    }
+});
+</script>
+
+</body>
+</html>
